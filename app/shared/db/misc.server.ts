@@ -36,6 +36,23 @@ export const publish = async ({
   if (project.prodTreeId) {
     prodTreeIdHistory.push(project.prodTreeId);
   }
+  if (
+    process.env.STORAGE === 'edge' &&
+    process.env.EDGE_PUBLISHER_ENDPOINT &&
+    process.env.EDGE_PUBLISHER_TOKEN
+  ) {
+    await fetch(process.env.NODE_ENV === 'development' ? 'http://localhost:8787/' : process.env.EDGE_PUBLISHER_ENDPOINT, {
+      method: 'PUT',
+      body: JSON.stringify({
+        id: projectId,
+        domain,
+        prodTreeId: tree.id,
+        prodTreeIdHistory,
+      }),
+      headers: { 'X-AUTH-WEBSTUDIO': process.env.EDGE_PUBLISHER_TOKEN }
+    }
+    );
+  }
   const updatedProject = await db.project.update({
     id: projectId,
     domain,
